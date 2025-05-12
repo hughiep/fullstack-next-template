@@ -21,7 +21,7 @@
     "paths": {
       "@/*": ["./*"],
       "@/shared/*": ["./modules/shared/*"],
-      "@/auth/*": ["./modules/auth/*"]
+      "@/auth/*": ["modules/core/auth/*"]
     }
   },
   "include": [

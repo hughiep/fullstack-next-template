@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { z } from 'zod'
 
-import { signIn } from '@/modules/auth/services'
+import { signIn } from '@/modules/core/auth/services'
 import { useAuth } from '@/modules/shared/contexts/auth/AuthContext'
 
 // Form validation schema

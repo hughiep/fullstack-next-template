@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-import { deletePost } from '@/modules/posts/services'
+import { deletePost } from '@/modules/features/posts/services'
 
 export default function DeletePostButton({ postId }: { postId: string }) {
   const [isDeleting, setIsDeleting] = useState(false)

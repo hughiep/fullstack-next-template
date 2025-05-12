@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
-import { getPostById, deletePost } from '@/modules/posts/services'
-import { getServerSession } from '@/modules/auth/services'
+import { getPostById, deletePost } from '@/modules/features/posts/services'
+import { getServerSession } from '@/modules/core/auth/services'
 
 import DeletePostButton from './components/delete-post-button'
 import CommentSection from './components/comment-section'

@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/shared/lib/prisma'
 import { logger } from '@/shared/logger'
 import { AppError } from '@/shared/types/error'
-import { getServerSession } from '@/modules/auth/services'
+import { getServerSession } from '@/modules/core/auth/services'
 
 // Validation schemas
 const postCreateSchema = z.object({

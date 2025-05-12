@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
 
-import { getPublishedPosts } from '@/modules/posts/services'
+import { getPublishedPosts } from '@/modules/features/posts/services'
 
 // Pagination component
 function Pagination({

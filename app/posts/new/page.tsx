@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { z } from 'zod'
 
-import { createPost } from '@/modules/posts/services'
+import { createPost } from '@/modules/features/posts/services'
 
 // Form validation schema
 const postFormSchema = z.object({

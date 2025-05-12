@@ -47,9 +47,8 @@ export async function signUp(data: z.infer<typeof signUpSchema>) {
     })
 
     if (existingUser) {
-      throw new AppError({
+      throw new AppError('User with this email or username already exists', {
         code: 'USER_EXISTS',
-        message: 'User with this email or username already exists',
         statusCode: 409,
       })
     }
@@ -88,9 +87,8 @@ export async function signUp(data: z.infer<typeof signUpSchema>) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       logger.error('Validation error during sign up', { issues: error.issues })
-      throw new AppError({
+      throw new AppError(error.issues[0].message, {
         code: 'VALIDATION_ERROR',
-        message: error.issues[0].message,
         statusCode: 400,
       })
     }
@@ -100,9 +98,8 @@ export async function signUp(data: z.infer<typeof signUpSchema>) {
     }
 
     logger.error('Sign up failed', { error })
-    throw new AppError({
+    throw new AppError('Failed to register user', {
       code: 'REGISTRATION_FAILED',
-      message: 'Failed to register user',
       statusCode: 500,
     })
   }
@@ -122,9 +119,8 @@ export async function signIn(data: z.infer<typeof signInSchema>) {
     })
 
     if (!user) {
-      throw new AppError({
+      throw new AppError('Invalid email or password', {
         code: 'INVALID_CREDENTIALS',
-        message: 'Invalid email or password',
         statusCode: 401,
       })
     }
@@ -136,9 +132,8 @@ export async function signIn(data: z.infer<typeof signInSchema>) {
     )
 
     if (!isPasswordValid) {
-      throw new AppError({
+      throw new AppError('Invalid email or password', {
         code: 'INVALID_CREDENTIALS',
-        message: 'Invalid email or password',
         statusCode: 401,
       })
     }
@@ -162,9 +157,8 @@ export async function signIn(data: z.infer<typeof signInSchema>) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       logger.error('Validation error during sign in', { issues: error.issues })
-      throw new AppError({
+      throw new AppError(error.issues[0].message, {
         code: 'VALIDATION_ERROR',
-        message: error.issues[0].message,
         statusCode: 400,
       })
     }
@@ -174,9 +168,8 @@ export async function signIn(data: z.infer<typeof signInSchema>) {
     }
 
     logger.error('Sign in failed', { error })
-    throw new AppError({
+    throw new AppError('Failed to authenticate user', {
       code: 'AUTHENTICATION_FAILED',
-      message: 'Failed to authenticate user',
       statusCode: 500,
     })
   }
@@ -187,7 +180,7 @@ export async function signIn(data: z.infer<typeof signInSchema>) {
  */
 export async function getServerSession() {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const accessToken = cookieStore.get(storageKeys.auth.acessToken)?.value
 
     if (!accessToken) {
@@ -233,13 +226,12 @@ export async function getServerSession() {
  */
 export async function refreshAccessToken() {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const refreshToken = cookieStore.get(storageKeys.auth.refreshToken)?.value
 
     if (!refreshToken) {
-      throw new AppError({
+      throw new AppError('Refresh token not found', {
         code: 'UNAUTHORIZED',
-        message: 'Refresh token not found',
         statusCode: 401,
       })
     }
@@ -248,9 +240,8 @@ export async function refreshAccessToken() {
     const payload = await verifyToken(refreshToken)
 
     if (!payload || !payload.sub) {
-      throw new AppError({
+      throw new AppError('Invalid refresh token', {
         code: 'UNAUTHORIZED',
-        message: 'Invalid refresh token',
         statusCode: 401,
       })
     }
@@ -269,9 +260,8 @@ export async function refreshAccessToken() {
     }
 
     logger.error('Failed to refresh access token', { error })
-    throw new AppError({
+    throw new AppError('Failed to refresh access token', {
       code: 'TOKEN_REFRESH_FAILED',
-      message: 'Failed to refresh access token',
       statusCode: 500,
     })
   }
@@ -281,7 +271,7 @@ export async function refreshAccessToken() {
  * Sign out a user by clearing cookies
  */
 export async function signOut() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.delete(storageKeys.auth.acessToken)
   cookieStore.delete(storageKeys.auth.refreshToken)
   return { success: true }

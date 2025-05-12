@@ -3,7 +3,7 @@ import axios from 'axios'
 
 import { logger } from '@/shared/logger'
 import { AppError, ErrorCode } from '@/modules/shared/types/error'
-import { getTokens, revokeAccessToken } from '@/auth/services'
+import { getTokens, revokeAccessToken } from '@/modules/core/auth/services'
 import { config } from '@/config'
 
 const UNAUTHORIZED_STATUS_CODE = 401

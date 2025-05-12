@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'next/navigation'
 
 // Import auth services
-import { getServerSession, signOut } from '@/modules/auth/services'
+import { getServerSession, signOut } from '@/modules/core/auth/services'
 
 // User type definition
 type User = {
