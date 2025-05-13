@@ -71,24 +71,25 @@ export async function verifyToken(token: string) {
 export async function setAuthCookies(
   accessToken: string,
   refreshToken: string,
+  rememberMe: boolean = false,
 ) {
   const cookieStore = await cookies()
 
-  // Set access token cookie (short-lived, HTTP-only)
+  // Set access token cookie - if remember me, extend to 1 day, otherwise 15 minutes
   cookieStore.set(storageKeys.auth.accessToken, accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 60 * 15, // 15 minutes
+    maxAge: rememberMe ? 60 * 60 * 24 : 60 * 15, // 1 day or 15 minutes
     path: '/',
   })
 
-  // Set refresh token cookie (longer-lived, HTTP-only)
+  // Set refresh token cookie - if remember me, extend to 30 days, otherwise 7 days
   cookieStore.set(storageKeys.auth.refreshToken, refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7, // 30 days or 7 days
     path: '/',
   })
 }

@@ -12,6 +12,7 @@ import { useAuth } from '@/modules/shared/contexts/auth/AuthContext'
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional().default(false),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
@@ -20,6 +21,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
+    rememberMe: false,
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -34,11 +36,11 @@ export default function LoginPage() {
   const redirectPath = searchParams.get('from') || '/'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value, type, checked } = e.target
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     }))
 
     // Clear validation error when user types
@@ -159,9 +161,12 @@ export default function LoginPage() {
             <div className="flex items-center">
               <input
                 id="remember-me"
-                name="remember-me"
+                name="rememberMe"
                 type="checkbox"
                 className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+                disabled={isLoading}
               />
               <label
                 htmlFor="remember-me"

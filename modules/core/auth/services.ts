@@ -26,6 +26,7 @@ const signUpSchema = z.object({
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string(),
+  rememberMe: z.boolean().optional().default(false),
 })
 
 /**
@@ -71,8 +72,8 @@ export async function signUp(data: z.infer<typeof signUpSchema>) {
     // Generate tokens
     const { accessToken, refreshToken } = await generateTokens(newUser.id)
 
-    // Set cookies
-    await setAuthCookies(accessToken, refreshToken)
+    // Set cookies (don't use remember me for new registrations by default)
+    await setAuthCookies(accessToken, refreshToken, false)
 
     logger.info('User registered successfully', { userId: newUser.id })
 
@@ -141,10 +142,13 @@ export async function signIn(data: z.infer<typeof signInSchema>) {
     // Generate tokens
     const { accessToken, refreshToken } = await generateTokens(user.id)
 
-    // Set cookies
-    await setAuthCookies(accessToken, refreshToken)
+    // Set cookies with remember-me preference
+    await setAuthCookies(accessToken, refreshToken, validatedData.rememberMe)
 
-    logger.info('User signed in successfully', { userId: user.id })
+    logger.info('User signed in successfully', {
+      userId: user.id,
+      rememberMe: validatedData.rememberMe,
+    })
 
     // Return user (without password)
     return {
