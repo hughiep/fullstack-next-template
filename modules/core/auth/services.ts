@@ -72,7 +72,7 @@ export async function signUp(data: z.infer<typeof signUpSchema>) {
     const { accessToken, refreshToken } = await generateTokens(newUser.id)
 
     // Set cookies
-    setAuthCookies(accessToken, refreshToken)
+    await setAuthCookies(accessToken, refreshToken)
 
     logger.info('User registered successfully', { userId: newUser.id })
 
@@ -142,7 +142,7 @@ export async function signIn(data: z.infer<typeof signInSchema>) {
     const { accessToken, refreshToken } = await generateTokens(user.id)
 
     // Set cookies
-    setAuthCookies(accessToken, refreshToken)
+    await setAuthCookies(accessToken, refreshToken)
 
     logger.info('User signed in successfully', { userId: user.id })
 
@@ -181,7 +181,7 @@ export async function signIn(data: z.infer<typeof signInSchema>) {
 export async function getServerSession() {
   try {
     const cookieStore = await cookies()
-    const accessToken = cookieStore.get(storageKeys.auth.acessToken)?.value
+    const accessToken = cookieStore.get(storageKeys.auth.accessToken)?.value
 
     if (!accessToken) {
       return null
@@ -272,7 +272,7 @@ export async function refreshAccessToken() {
  */
 export async function signOut() {
   const cookieStore = await cookies()
-  cookieStore.delete(storageKeys.auth.acessToken)
+  cookieStore.delete(storageKeys.auth.accessToken)
   cookieStore.delete(storageKeys.auth.refreshToken)
   return { success: true }
 }

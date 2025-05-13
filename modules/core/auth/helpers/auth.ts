@@ -2,23 +2,11 @@ import bcrypt from 'bcryptjs'
 import { jwtVerify, SignJWT } from 'jose'
 import { cookies } from 'next/headers'
 
-import { prisma } from '@/shared/lib/prisma'
 import { logger } from '@/shared/logger'
 
-import { storageKeys } from '../constants/storage'
+import { storageKeys } from '../storage'
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET)
-
-export const getAccessToken = () =>
-  window.localStorage.getItem(storageKeys.auth.acessToken)
-export const getRefreshToken = () =>
-  window.localStorage.getItem(storageKeys.auth.refreshToken)
-
-export const setAccessToken = (accessToken: string) =>
-  window.localStorage.set(storageKeys.auth.acessToken, accessToken)
-
-export const setRefreshToken = (refreshToken: string) =>
-  window.localStorage.set(storageKeys.auth.refreshToken, refreshToken)
 
 /**
  * Hash a password using bcrypt
@@ -80,11 +68,14 @@ export async function verifyToken(token: string) {
 /**
  * Set authentication cookies
  */
-export function setAuthCookies(accessToken: string, refreshToken: string) {
-  const cookieStore = cookies()
+export async function setAuthCookies(
+  accessToken: string,
+  refreshToken: string,
+) {
+  const cookieStore = await cookies()
 
   // Set access token cookie (short-lived, HTTP-only)
-  cookieStore.set(storageKeys.auth.acessToken, accessToken, {
+  cookieStore.set(storageKeys.auth.accessToken, accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
@@ -105,8 +96,8 @@ export function setAuthCookies(accessToken: string, refreshToken: string) {
 /**
  * Clear authentication cookies
  */
-export function clearAuthCookies() {
-  const cookieStore = cookies()
-  cookieStore.delete(storageKeys.auth.acessToken)
+export async function clearAuthCookies() {
+  const cookieStore = await cookies()
+  cookieStore.delete(storageKeys.auth.accessToken)
   cookieStore.delete(storageKeys.auth.refreshToken)
 }

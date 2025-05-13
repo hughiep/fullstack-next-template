@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { prisma } from '@/shared/lib/prisma'
 import { logger } from '@/shared/logger'
-import { AppError } from '@/shared/types/error'
-import { getServerSession } from '@/auth/services'
+import { getServerSession } from '@/modules/core/auth/services'
 
 // GET /api/users - Get list of users (admin only)
 export async function GET() {

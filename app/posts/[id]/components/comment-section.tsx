@@ -2,49 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 
-// This would be in a comments service module
-async function addComment(postId: string, content: string) {
-  'use server'
-
-  const { getServerSession } = await import('@/modules/auth/services')
-  const { prisma } = await import('@/shared/lib/prisma')
-  const { AppError } = await import('@/shared/types/error')
-
-  // Check authentication
-  const session = await getServerSession()
-  if (!session?.user) {
-    throw new AppError({
-      code: 'UNAUTHORIZED',
-      message: 'You must be logged in to comment',
-      statusCode: 401,
-    })
-  }
-
-  // Create comment
-  const comment = await prisma.comment.create({
-    data: {
-      content,
-      postId,
-      authorId: session.user.id,
-    },
-    include: {
-      author: {
-        select: {
-          id: true,
-          username: true,
-          profile: {
-            select: {
-              avatarUrl: true,
-            },
-          },
-        },
-      },
-    },
-  })
-
-  return comment
-}
+import { addComment } from '../actions/comment-actions'
 
 type CommentType = {
   id: string
@@ -84,11 +44,18 @@ export default function CommentSection({
     startTransition(async () => {
       try {
         const newComment = await addComment(postId, content)
-        setComments((prev) => [newComment, ...prev])
+        // Convert Date objects to string format to match CommentType
+        setComments((prev) => [
+          {
+            ...newComment,
+            createdAt: newComment.createdAt.toISOString(),
+          } as CommentType,
+          ...prev,
+        ])
         setContent('')
-        router.refresh() // Update any cached data
-      } catch (err: any) {
-        setError(err.message || 'Failed to add comment')
+        router.refresh() // Refresh the page data
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to add comment')
       }
     })
   }
@@ -138,10 +105,12 @@ export default function CommentSection({
               <div className="mb-2 flex items-center">
                 <div className="flex items-center">
                   {comment.author.profile?.avatarUrl ? (
-                    <img
+                    <Image
                       src={comment.author.profile.avatarUrl}
                       alt={comment.author.username}
-                      className="mr-2 h-6 w-6 rounded-full"
+                      width={24}
+                      height={24}
+                      className="mr-2 h-6 w-6 rounded-full object-cover"
                     />
                   ) : (
                     <div className="mr-2 h-6 w-6 rounded-full bg-gray-200" />

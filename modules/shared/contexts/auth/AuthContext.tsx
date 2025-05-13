@@ -56,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(true)
       // Using server action to get session
       const session = await getServerSession()
+      console.log('Session:', session)
       setUser(session?.user || null)
     } catch (error) {
       console.error('Failed to refresh user:', error)

@@ -13,7 +13,19 @@
     "debug": "NODE_OPTIONS='--inspect' next dev --turbopack",
     "format": "prettier --write .",
     "lint": "next lint --max-warnings=0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "postinstall": "prisma generate",
+    "prisma:studio": "prisma studio",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:reset": "prisma migrate reset --force --skip-seed",
+    "prisma:push": "prisma db push",
+    "prisma:seed": "prisma db seed",
+    "prisma:format": "prisma format",
+    "prisma:check": "prisma validate",
+    "prisma:studio:open": "prisma studio --browser=none",
+    "prisma:studio:close": "pkill -f 'prisma studio'",
+    "prisma:studio:restart": "pkill -f 'prisma studio' && prisma studio --browser=none"
   },
   "dependencies": {
     "@prisma/client": "^6.7.0",

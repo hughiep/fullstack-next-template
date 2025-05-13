@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { storageKeys } from './modules/core/auth/storage'
+
 // Define which routes require authentication
 const protectedRoutes = ['/posts/new', '/posts/edit', '/profile', '/settings']
 
@@ -10,7 +12,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Get auth token from cookies
-  const authToken = req.cookies.get('auth.accessToken')?.value
+  const authToken = req.cookies.get(storageKeys.auth.accessToken)?.value
   const isAuthenticated = !!authToken
 
   // Handle protected routes
