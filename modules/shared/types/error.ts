@@ -3,21 +3,20 @@ export class AppError extends Error {
   public readonly statusCode?: number
   public readonly context?: Record<string, unknown>
 
-  constructor(
-    message: string,
-    {
-      code,
-      statusCode,
-      context,
-    }: {
-      code: string
-      statusCode?: number
-      context?: Record<string, unknown>
-    },
-  ) {
-    super(message)
-    this.name = 'AppError'
+  constructor({
+    message = 'An error occurred',
+    code,
+    statusCode,
+    context,
+  }: {
+    message?: string
+    code: string
+    statusCode?: number
+    context?: Record<string, unknown>
+  }) {
+    super(message, { cause: context })
     this.code = code
+    this.name = 'AppError'
     this.statusCode = statusCode
     this.context = context
   }

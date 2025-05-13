@@ -160,7 +160,7 @@ export async function getPostById(id: string) {
     }
 
     logger.error('Failed to fetch post by ID', { error, postId: id })
-    throw new AppError({
+    throw new AppError('Failed to fetch post by ID', {
       code: 'FETCH_FAILED',
       message: 'Failed to fetch post',
       statusCode: 500,

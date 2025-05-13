@@ -65,41 +65,58 @@ class Logger {
 
     const formattedMessage = this.formatMessage(entry)
 
-    switch (entry.level) {
-      case 'debug':
-        console.debug(formattedMessage, entry.data || '')
-        break
-      case 'info':
-        console.info(formattedMessage, entry.data || '')
-        break
-      case 'warn':
-        console.warn(formattedMessage, entry.data || '')
-        break
-      case 'error':
-        console.error(formattedMessage, entry.error || entry.data || '')
-        break
+    // Only log to console in development or if explicitly enabled
+    if (process.env.NODE_ENV !== 'production' || this.enabled) {
+      switch (entry.level) {
+        case 'debug':
+          console.debug(formattedMessage, entry.data || '')
+          break
+        case 'info':
+          console.info(formattedMessage, entry.data || '')
+          break
+        case 'warn':
+          console.warn(formattedMessage, entry.data || '')
+          break
+        case 'error':
+          console.error(formattedMessage, entry.error || entry.data || '')
+          break
+      }
     }
 
-    // You could add here:
-    // - Log persistence
-    // - Error tracking service integration (Sentry, etc.)
-    // - Analytics
-    this.persistLog(entry)
+    // Always persist errors for monitoring, regardless of environment
+    if (entry.level === 'error' || entry.level === 'warn') {
+      this.persistLog(entry)
+    } 
+    // For non-error logs, only persist in development or if explicitly required
+    else if (process.env.NODE_ENV !== 'production' || this.enabled) {
+      this.persistLog(entry)
+    }
   }
 
   private persistLog(entry: LogEntry): void {
-    if (entry.level === 'error') {
-      // Example: Send to error tracking service
-      // await this.sendToErrorTracking(entry)
-    }
-
-    // Example: Store in localStorage for debugging
+    // Store in localStorage for client-side debugging
     if (typeof window !== 'undefined') {
-      const logs = JSON.parse(localStorage.getItem('app_logs') ?? '[]')
-      logs.push(entry)
-      // Keep only last 100 logs
-      localStorage.setItem('app_logs', JSON.stringify(logs.slice(-100)))
+      // Only store logs in non-production environments to avoid filling localStorage
+      if (process.env.NODE_ENV !== 'production') {
+        const logs = JSON.parse(localStorage.getItem('app_logs') ?? '[]')
+        logs.push(entry)
+        // Keep only last 100 logs
+        localStorage.setItem('app_logs', JSON.stringify(logs.slice(-100)))
+      }
+      
+      // In production, you might want to send critical errors to a service like Sentry
+      if (process.env.NODE_ENV === 'production' && entry.level === 'error') {
+        // If you add Sentry or another error tracking service, you would call it here
+        // Example: Sentry.captureException(entry.error)
+      }
     }
+    
+    // For server-side logging in production, consider services like:
+    // - Application Insights
+    // - Datadog
+    // - LogRocket
+    // - New Relic
+    // - Sentry
   }
 
   debug(message: string, data?: unknown): void {
@@ -133,9 +150,11 @@ class Logger {
 
 // Export a singleton instance
 export const logger = Logger.getInstance({
-  level: (process.env.NEXT_PUBLIC_LOG_LEVEL as LogLevel) || 'info',
+  // In production, only log warnings and errors by default
+  level: process.env.NODE_ENV === 'production' ? 'warn' : ((process.env.NEXT_PUBLIC_LOG_LEVEL as LogLevel) || 'info'),
   prefix: 'App',
-  enabled: process.env.NODE_ENV !== 'production',
+  // Always enable logging, but the internal logic will control console output
+  enabled: true,
 })
 
 // Export the class for custom instances

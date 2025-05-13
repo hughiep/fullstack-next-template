@@ -11,7 +11,8 @@ export async function addComment(postId: string, content: string) {
   // Check authentication
   const session = await getServerSession()
   if (!session?.user) {
-    throw new AppError('You must be logged in to comment', {
+    throw new AppError({
+      message: 'You must be logged in to add a comment',
       code: 'UNAUTHORIZED',
       statusCode: 401,
     })

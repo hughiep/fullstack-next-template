@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { prisma } from '@/shared/lib/prisma'
 import { logger } from '@/shared/logger'
 import { AppError } from '@/shared/types/error'
+import { withServerActionErrorHandler } from '@/modules/shared/utilities/server-action-handler'
 
 import {
   comparePasswords,
@@ -32,79 +33,86 @@ const signInSchema = z.object({
 /**
  * Register a new user
  */
-export async function signUp(data: z.infer<typeof signUpSchema>) {
-  try {
-    // Validate input
-    const validatedData = signUpSchema.parse(data)
+export const signUp = withServerActionErrorHandler(
+  async (data: z.infer<typeof signUpSchema>) => {
+    try {
+      // Validate input
+      const validatedData = signUpSchema.parse(data)
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: validatedData.email },
-          { username: validatedData.username },
-        ],
-      },
-    })
-
-    if (existingUser) {
-      throw new AppError('User with this email or username already exists', {
-        code: 'USER_EXISTS',
-        statusCode: 409,
-      })
-    }
-
-    // Hash password
-    const hashedPassword = await hashPassword(validatedData.password)
-
-    // Create user
-    const newUser = await prisma.user.create({
-      data: {
-        email: validatedData.email,
-        username: validatedData.username,
-        passwordHash: hashedPassword,
-        profile: {
-          create: {}, // Create an empty profile
+      // Check if user already exists
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: validatedData.email },
+            { username: validatedData.username },
+          ],
         },
-      },
-    })
+      })
 
-    // Generate tokens
-    const { accessToken, refreshToken } = await generateTokens(newUser.id)
+      if (existingUser) {
+        throw new AppError({
+          code: 'USER_EXISTS',
+          message: 'User with this email or username already exists',
+          statusCode: 409,
+        })
+      }
 
-    // Set cookies (don't use remember me for new registrations by default)
-    await setAuthCookies(accessToken, refreshToken, false)
+      // Hash password
+      const hashedPassword = await hashPassword(validatedData.password)
 
-    logger.info('User registered successfully', { userId: newUser.id })
+      // Create user
+      const newUser = await prisma.user.create({
+        data: {
+          email: validatedData.email,
+          username: validatedData.username,
+          passwordHash: hashedPassword,
+          profile: {
+            create: {}, // Create an empty profile
+          },
+        },
+      })
 
-    // Return user (without password)
-    return {
-      user: {
-        id: newUser.id,
-        email: newUser.email,
-        username: newUser.username,
-      },
-    }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      logger.error('Validation error during sign up', { issues: error.issues })
-      throw new AppError(error.issues[0].message, {
-        code: 'VALIDATION_ERROR',
-        statusCode: 400,
+      // Generate tokens
+      const { accessToken, refreshToken } = await generateTokens(newUser.id)
+
+      // Set cookies (don't use remember me for new registrations by default)
+      await setAuthCookies(accessToken, refreshToken, false)
+
+      logger.info('User registered successfully', { userId: newUser.id })
+
+      // Return user (without password)
+      return {
+        user: {
+          id: newUser.id,
+          email: newUser.email,
+          username: newUser.username,
+        },
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        logger.error('Validation error during sign up', {
+          issues: error.issues,
+        })
+        throw new AppError({
+          code: 'VALIDATION_ERROR',
+          message: error.issues[0].message,
+          statusCode: 400,
+        })
+      }
+
+      if (error instanceof AppError) {
+        throw error
+      }
+
+      logger.error('Sign up failed', { error })
+      throw new AppError({
+        message: 'Failed to register user',
+        code: 'REGISTRATION_FAILED',
+        statusCode: 500,
       })
     }
-
-    if (error instanceof AppError) {
-      throw error
-    }
-
-    logger.error('Sign up failed', { error })
-    throw new AppError('Failed to register user', {
-      code: 'REGISTRATION_FAILED',
-      statusCode: 500,
-    })
-  }
-}
+  },
+)
 
 /**
  * Sign in a user with email and password

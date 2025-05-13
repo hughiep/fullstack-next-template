@@ -44,10 +44,16 @@ export default function ProfileForm({ user }: { user: UserWithProfile }) {
     setSuccess(null)
 
     try {
-      await updateProfile(formData)
+      // Wrap in a try-catch that properly handles server action errors
+      const result = await updateProfile(formData).catch(err => {
+        console.error('Server action error:', err);
+        throw err;
+      });
+      
       setSuccess('Profile updated successfully')
       router.refresh() // Refresh the page to show updated data
     } catch (err) {
+      console.error('Profile update error:', err);
       setError(err instanceof Error ? err.message : 'Failed to update profile')
     } finally {
       setIsLoading(false)
